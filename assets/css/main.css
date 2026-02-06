@@ -750,8 +750,9 @@ ul, ol {
 }
 
 .carousel-slide {
-	min-width: 100%;
-	flex-shrink: 0;
+	flex: 0 0 100%;
+	width: 100%;
+	max-width: 100%;
 }
 
 .carousel-slide img {
@@ -759,7 +760,7 @@ ul, ol {
 	height: auto;
 	display: block;
 	object-fit: contain;
-	max-height: 600px;
+	max-height: 70vh;
 	background: #f9f9f9;
 }
 
@@ -878,7 +879,6 @@ ul, ol {
 .testimonials-carousel {
 	position: relative;
 	overflow: hidden;
-	padding: 0 var(--space-xl);
 }
 
 .testimonials-track {
@@ -887,8 +887,9 @@ ul, ol {
 }
 
 .testimonial-card {
-	min-width: 100%;
-	flex-shrink: 0;
+	flex: 0 0 100%;
+	width: 100%;
+	max-width: 100%;
 	padding: 0 var(--space-sm);
 }
 
@@ -1515,8 +1516,9 @@ ul, ol {
 		min-width: 120px;
 	}
 
-	.testimonials-carousel {
-		padding: 0 var(--space-lg);
+	.testimonials-carousel .carousel-btn {
+		width: 40px;
+		height: 40px;
 	}
 
 	.testimonial-full-card {
@@ -1610,8 +1612,10 @@ ul, ol {
 		right: 8px;
 	}
 
-	.testimonials-carousel {
-		padding: 0 var(--space-sm);
+	.testimonials-carousel .carousel-btn {
+		width: 32px;
+		height: 32px;
+		font-size: 0.75rem;
 	}
 
 	.testimonial-text {
