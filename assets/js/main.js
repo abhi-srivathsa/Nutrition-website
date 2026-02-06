@@ -257,11 +257,21 @@
 		}
 	}
 
+	/* ---------- Dynamic Footer Year ---------- */
+	function initFooterYear() {
+		var footers = document.querySelectorAll('.footer-copy');
+		var year = new Date().getFullYear();
+		for (var i = 0; i < footers.length; i++) {
+			footers[i].innerHTML = footers[i].innerHTML.replace(/\d{4}/, year);
+		}
+	}
+
 	/* ---------- Initialize Everything ---------- */
 	function init() {
 		initNavigation();
 		initSmoothScroll();
 		initScrollAnimations();
+		initFooterYear();
 
 		// Init all carousels
 		var carousels = document.querySelectorAll('.carousel, .testimonials-carousel');
