@@ -1204,6 +1204,7 @@ ul, ol {
 .testimonial-full-name {
 	font-family: var(--font-heading);
 	font-size: 1.2rem;
+	font-weight: 600;
 	color: var(--color-text-dark);
 	margin-bottom: var(--space-sm);
 }

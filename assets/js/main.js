@@ -137,9 +137,11 @@
 		container.setAttribute('tabindex', '0');
 		container.addEventListener('keydown', function (e) {
 			if (e.key === 'ArrowLeft') {
+				e.preventDefault();
 				prevSlide();
 				startAutoplay();
 			} else if (e.key === 'ArrowRight') {
+				e.preventDefault();
 				nextSlide();
 				startAutoplay();
 			}
