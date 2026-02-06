@@ -1,149 +1,292 @@
-/*
-	Stellar by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
-*/
+/* ==========================================================================
+   Dr. Usha Harish - Diet & Obesity Clinic
+   Main JavaScript - Carousel, Navigation, Scroll Animations
+   ========================================================================== */
 
-(function($) {
-	$(document).ready(function(){
-  	$('.owl-carousel').owlCarousel({
-         items : 1,
-         itemsDesktop : [1199,4],
-         itemsDesktopSmall : [980,3],
-         itemsTablet: [768,2],
-         itemsTabletSmall: false,
-         itemsMobile : [479,1],
-         singleItem : false,
+(function () {
+	'use strict';
 
-         //Basic Speeds
-         slideSpeed : 200,
-         paginationSpeed : 800,
-         rewindSpeed : 1000,
+	/* ---------- Carousel System ---------- */
+	function initCarousel(carouselEl) {
+		var track = carouselEl.querySelector('.carousel-track, .testimonials-track');
+		if (!track) return;
 
-         //Autoplay
-         autoPlay : true,
-         stopOnHover : true,
+		var slides = track.children;
+		var totalSlides = slides.length;
+		if (totalSlides === 0) return;
 
-         // Navigation
-         navigation : false,
-         navigationText : ["prev","next"],
-         rewindNav : true,
-         scrollPerPage : false,
-         autoHeight : true
-  	});
-	});
-	var	$window = $(window),
-		$body = $('body'),
-		$main = $('#main');
+		var currentIndex = 0;
+		var autoplayInterval = null;
+		var isTransitioning = false;
 
-	// Breakpoints.
-		breakpoints({
-			xlarge:   [ '1281px',  '1680px' ],
-			large:    [ '981px',   '1280px' ],
-			medium:   [ '737px',   '980px'  ],
-			small:    [ '481px',   '736px'  ],
-			xsmall:   [ '361px',   '480px'  ],
-			xxsmall:  [ null,      '360px'  ]
-		});
+		// Find buttons within or adjacent to carousel
+		var container = carouselEl;
+		var prevBtn = container.querySelector('.carousel-btn-prev');
+		var nextBtn = container.querySelector('.carousel-btn-next');
 
-	// Play initial animations on page load.
-		$window.on('load', function() {
-			window.setTimeout(function() {
-				$body.removeClass('is-preload');
-			}, 100);
-		});
-
-	// Nav.
-		var $nav = $('#nav');
-
-		if ($nav.length > 0) {
-
-			// Shrink effect.
-				$main
-					.scrollex({
-						mode: 'top',
-						enter: function() {
-							$nav.addClass('alt');
-						},
-						leave: function() {
-							$nav.removeClass('alt');
-						},
-					});
-
-			// Links.
-				var $nav_a = $nav.find('a');
-
-				$nav_a
-					.scrolly({
-						speed: 1000,
-						offset: function() { return $nav.height(); }
-					})
-					.on('click', function() {
-
-						var $this = $(this);
-
-						// External link? Bail.
-							if ($this.attr('href').charAt(0) != '#')
-								return;
-
-						// Deactivate all links.
-							$nav_a
-								.removeClass('active')
-								.removeClass('active-locked');
-
-						// Activate link *and* lock it (so Scrollex doesn't try to activate other links as we're scrolling to this one's section).
-							$this
-								.addClass('active')
-								.addClass('active-locked');
-
-					})
-					.each(function() {
-
-						var	$this = $(this),
-							id = $this.attr('href'),
-							$section = $(id);
-
-						// No section for this link? Bail.
-							if ($section.length < 1)
-								return;
-
-						// Scrollex.
-							$section.scrollex({
-								mode: 'middle',
-								initialize: function() {
-
-									// Deactivate section.
-										if (browser.canUse('transition'))
-											$section.addClass('inactive');
-
-								},
-								enter: function() {
-
-									// Activate section.
-										$section.removeClass('inactive');
-
-									// No locked links? Deactivate all links and activate this section's one.
-										if ($nav_a.filter('.active-locked').length == 0) {
-
-											$nav_a.removeClass('active');
-											$this.addClass('active');
-
-										}
-
-									// Otherwise, if this section's link is the one that's locked, unlock it.
-										else if ($this.hasClass('active-locked'))
-											$this.removeClass('active-locked');
-
-								}
-							});
-
-					});
-
+		// Dots container
+		var dotsContainer = container.querySelector('.carousel-dots');
+		if (dotsContainer) {
+			dotsContainer.innerHTML = '';
+			// Only show dots if reasonable number of slides
+			if (totalSlides <= 20) {
+				for (var i = 0; i < totalSlides; i++) {
+					var dot = document.createElement('button');
+					dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+					dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+					dot.dataset.index = i;
+					dotsContainer.appendChild(dot);
+				}
+			}
 		}
 
-	// Scrolly.
-		$('.scrolly').scrolly({
-			speed: 1000
+		function goToSlide(index) {
+			if (isTransitioning) return;
+			if (index < 0) index = totalSlides - 1;
+			if (index >= totalSlides) index = 0;
+
+			isTransitioning = true;
+			currentIndex = index;
+			track.style.transform = 'translateX(-' + (currentIndex * 100) + '%)';
+
+			// Update dots
+			if (dotsContainer) {
+				var dots = dotsContainer.querySelectorAll('.carousel-dot');
+				for (var j = 0; j < dots.length; j++) {
+					dots[j].classList.toggle('active', j === currentIndex);
+				}
+			}
+
+			setTimeout(function () {
+				isTransitioning = false;
+			}, 500);
+		}
+
+		function nextSlide() {
+			goToSlide(currentIndex + 1);
+		}
+
+		function prevSlide() {
+			goToSlide(currentIndex - 1);
+		}
+
+		function startAutoplay() {
+			stopAutoplay();
+			autoplayInterval = setInterval(nextSlide, 5000);
+		}
+
+		function stopAutoplay() {
+			if (autoplayInterval) {
+				clearInterval(autoplayInterval);
+				autoplayInterval = null;
+			}
+		}
+
+		// Button events
+		if (prevBtn) {
+			prevBtn.addEventListener('click', function () {
+				prevSlide();
+				startAutoplay(); // Reset autoplay timer
+			});
+		}
+		if (nextBtn) {
+			nextBtn.addEventListener('click', function () {
+				nextSlide();
+				startAutoplay();
+			});
+		}
+
+		// Dot click events
+		if (dotsContainer) {
+			dotsContainer.addEventListener('click', function (e) {
+				var dot = e.target.closest('.carousel-dot');
+				if (dot && dot.dataset.index !== undefined) {
+					goToSlide(parseInt(dot.dataset.index, 10));
+					startAutoplay();
+				}
+			});
+		}
+
+		// Touch/swipe support
+		var touchStartX = 0;
+		var touchEndX = 0;
+
+		track.addEventListener('touchstart', function (e) {
+			touchStartX = e.changedTouches[0].screenX;
+			stopAutoplay();
+		}, { passive: true });
+
+		track.addEventListener('touchend', function (e) {
+			touchEndX = e.changedTouches[0].screenX;
+			var diff = touchStartX - touchEndX;
+			if (Math.abs(diff) > 50) {
+				if (diff > 0) {
+					nextSlide();
+				} else {
+					prevSlide();
+				}
+			}
+			startAutoplay();
+		}, { passive: true });
+
+		// Pause on hover
+		container.addEventListener('mouseenter', stopAutoplay);
+		container.addEventListener('mouseleave', startAutoplay);
+
+		// Keyboard navigation when focused
+		container.setAttribute('tabindex', '0');
+		container.addEventListener('keydown', function (e) {
+			if (e.key === 'ArrowLeft') {
+				e.preventDefault();
+				prevSlide();
+				startAutoplay();
+			} else if (e.key === 'ArrowRight') {
+				e.preventDefault();
+				nextSlide();
+				startAutoplay();
+			}
 		});
 
-})(jQuery);
+		// Start autoplay
+		startAutoplay();
+	}
+
+	/* ---------- Navigation ---------- */
+	function initNavigation() {
+		var nav = document.getElementById('nav');
+		var toggle = document.getElementById('navToggle');
+		var links = document.getElementById('navLinks');
+
+		if (!nav) return;
+
+		// Scroll effect - add 'scrolled' class when scrolling down
+		function handleScroll() {
+			if (window.scrollY > 50) {
+				nav.classList.add('scrolled');
+			} else {
+				nav.classList.remove('scrolled');
+			}
+		}
+
+		window.addEventListener('scroll', handleScroll, { passive: true });
+		handleScroll(); // Run on init
+
+		// Mobile toggle
+		if (toggle && links) {
+			toggle.addEventListener('click', function () {
+				toggle.classList.toggle('active');
+				links.classList.toggle('active');
+			});
+
+			// Close menu on link click
+			var navLinks = links.querySelectorAll('a');
+			for (var i = 0; i < navLinks.length; i++) {
+				navLinks[i].addEventListener('click', function () {
+					toggle.classList.remove('active');
+					links.classList.remove('active');
+				});
+			}
+
+			// Close menu on outside click
+			document.addEventListener('click', function (e) {
+				if (!nav.contains(e.target)) {
+					toggle.classList.remove('active');
+					links.classList.remove('active');
+				}
+			});
+		}
+	}
+
+	/* ---------- Smooth Scroll ---------- */
+	function initSmoothScroll() {
+		var anchors = document.querySelectorAll('a[href^="#"]');
+		for (var i = 0; i < anchors.length; i++) {
+			anchors[i].addEventListener('click', function (e) {
+				var href = this.getAttribute('href');
+				if (href === '#') return;
+
+				var target = document.querySelector(href);
+				if (target) {
+					e.preventDefault();
+					var navHeight = document.getElementById('nav')
+						? document.getElementById('nav').offsetHeight
+						: 0;
+					var targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navHeight;
+
+					window.scrollTo({
+						top: targetPosition,
+						behavior: 'smooth'
+					});
+				}
+			});
+		}
+	}
+
+	/* ---------- Scroll Animations ---------- */
+	function initScrollAnimations() {
+		var elements = document.querySelectorAll(
+			'.service-card, .media-highlight-item, .stat-block, .about-grid, .testimonial-full-card, .video-section, .carousel-section, .contact-grid'
+		);
+
+		if (!elements.length) return;
+
+		// Add fade-in class
+		for (var i = 0; i < elements.length; i++) {
+			elements[i].classList.add('fade-in');
+		}
+
+		if ('IntersectionObserver' in window) {
+			var observer = new IntersectionObserver(function (entries) {
+				for (var j = 0; j < entries.length; j++) {
+					if (entries[j].isIntersecting) {
+						entries[j].target.classList.add('visible');
+						observer.unobserve(entries[j].target);
+					}
+				}
+			}, {
+				threshold: 0.1,
+				rootMargin: '0px 0px -50px 0px'
+			});
+
+			for (var k = 0; k < elements.length; k++) {
+				observer.observe(elements[k]);
+			}
+		} else {
+			// Fallback: show all immediately
+			for (var m = 0; m < elements.length; m++) {
+				elements[m].classList.add('visible');
+			}
+		}
+	}
+
+	/* ---------- Dynamic Footer Year ---------- */
+	function initFooterYear() {
+		var footers = document.querySelectorAll('.footer-copy');
+		var year = new Date().getFullYear();
+		for (var i = 0; i < footers.length; i++) {
+			footers[i].innerHTML = footers[i].innerHTML.replace(/\d{4}/, year);
+		}
+	}
+
+	/* ---------- Initialize Everything ---------- */
+	function init() {
+		initNavigation();
+		initSmoothScroll();
+		initScrollAnimations();
+		initFooterYear();
+
+		// Init all carousels
+		var carousels = document.querySelectorAll('.carousel, .testimonials-carousel');
+		for (var i = 0; i < carousels.length; i++) {
+			initCarousel(carousels[i]);
+		}
+	}
+
+	// Run when DOM is ready
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', init);
+	} else {
+		init();
+	}
+
+})();
